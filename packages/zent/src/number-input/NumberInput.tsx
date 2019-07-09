@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { PureComponent } from 'react';
 import cx from 'classnames';
 import { Omit } from 'utility-types';
 import Decimal from 'big.js';
 import Icon from '../icon';
-import Input, { IInputProps } from '../input';
+import Input, { IInputClearEvent, IInputCoreProps } from '../input';
+import { InputContext, IInputContext } from '../input/context';
 
 function isDecimal(value: string | number): boolean {
   if (typeof value === 'number') {
@@ -68,50 +68,56 @@ export interface INumberInputTarget extends INumberInputProps {
 }
 
 export interface INumberInputProps
-  extends Omit<IInputProps, 'onChange' | 'type' | 'value'> {
+  extends Omit<IInputCoreProps, 'onChange' | 'type' | 'value'> {
   type: 'number';
-  value: number | string;
-  onChange: (e: string) => any;
-  showStepper: boolean;
-  showCounter: boolean;
+  value?: number | string;
+  onChange?: (e: string) => void;
+  showStepper?: boolean;
+  showCounter?: boolean;
   decimal: number;
   min?: number | string;
   max?: number | string;
-  onPressEnter?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export interface INumberInputState {
-  prevValue: number | string;
+  prevProps: INumberInputProps;
   value: string;
 }
 
-export class NumberInput extends PureComponent<
+function isValidValue(value: unknown): value is string | number {
+  const type = typeof value;
+  return (
+    (type === 'string' && isDecimal(value as string)) ||
+    (type === 'number' && Number.isFinite(value as number))
+  );
+}
+
+export class NumberInput extends React.PureComponent<
   INumberInputProps,
   INumberInputState
 > {
   static defaultProps = {
-    prefix: 'zent',
     type: 'number',
-    showStepper: false,
-    showCounter: false,
-    value: '',
     decimal: 0,
-    disabled: false,
-    onChange: () => {},
+    size: 'normal',
+  };
+
+  private inputContext: IInputContext = {
+    renderInner: children => this.renderChild(children),
   };
 
   constructor(props: INumberInputProps) {
     super(props);
     const { min, max, decimal: decimalPlaces } = props;
     const value = getCorrectedValue({
-      value: props.value,
+      value: isValidValue(props.value) ? props.value : '',
       min,
       max,
       decimalPlaces,
     });
     this.state = {
       value,
-      prevValue: value,
+      prevProps: props,
     };
   }
 
@@ -140,7 +146,7 @@ export class NumberInput extends PureComponent<
     };
   }
 
-  onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  onChange = (e: IInputClearEvent | React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     if (isPotentialValue(value) || isDecimal(value)) {
       this.setState({
@@ -158,42 +164,51 @@ export class NumberInput extends PureComponent<
       value,
       decimalPlaces,
     });
-    this.setState({
-      value: nextValue,
-    });
-    onChange(nextValue);
+    if (onChange) {
+      onChange(nextValue);
+    } else {
+      this.setState({
+        value: nextValue,
+      });
+    }
     const { onBlur } = this.props;
     onBlur && onBlur(e);
   };
 
   inc = () => {
-    const { disabled, decimal: decimalPlaces } = this.props;
+    const { disabled, decimal: decimalPlaces, onChange } = this.props;
     const { value } = this.state;
     const { canInc } = this.calculateLimit(value);
     if (disabled || !canInc) {
       return;
     }
-    this.setState(state => {
-      const decimal = new Decimal(state.value);
-      return {
-        value: decimal.plus(this.getDelta()).toFixed(decimalPlaces),
-      };
-    });
+    const decimal = new Decimal(value);
+    const nextValue = decimal.plus(this.getDelta()).toFixed(decimalPlaces);
+    if (onChange) {
+      onChange(nextValue);
+    } else {
+      this.setState({
+        value: nextValue,
+      });
+    }
   };
 
   dec = () => {
-    const { disabled, decimal: decimalPlaces } = this.props;
+    const { disabled, decimal: decimalPlaces, onChange } = this.props;
     const { value } = this.state;
     const { canDec } = this.calculateLimit(value);
     if (disabled || !canDec) {
       return;
     }
-    this.setState(state => {
-      const decimal = new Decimal(state.value);
-      return {
-        value: decimal.minus(this.getDelta()).toFixed(decimalPlaces),
-      };
-    });
+    const decimal = new Decimal(value);
+    const nextValue = decimal.minus(this.getDelta()).toFixed(decimalPlaces);
+    if (onChange) {
+      onChange(nextValue);
+    } else {
+      this.setState({
+        value: nextValue,
+      });
+    }
   };
 
   private getDelta() {
@@ -202,10 +217,14 @@ export class NumberInput extends PureComponent<
   }
 
   static getDerivedStateFromProps(
-    { value, min, max, decimal: decimalPlaces }: INumberInputProps,
-    { prevValue }: INumberInputState
+    props: INumberInputProps,
+    { prevProps }: INumberInputState
   ): Partial<INumberInputState> | null {
-    if (value !== prevValue) {
+    const { value, min, max, decimal: decimalPlaces } = props;
+    if (props === prevProps) {
+      return null;
+    }
+    if (isValidValue(value)) {
       const nextValue = getCorrectedValue({
         value: trimLeadingPlus(value.toString()),
         min,
@@ -214,31 +233,97 @@ export class NumberInput extends PureComponent<
       });
       return {
         value: nextValue,
-        prevValue: value,
+        prevProps: props,
       };
     }
-    return null;
+    return {
+      prevProps: props,
+    };
   }
 
   componentDidMount() {
-    if (this.props.value !== this.state.value) {
-      this.props.onChange(this.state.value);
+    if ('value' in this.props && this.props.value !== this.state.value) {
+      const { onChange } = this.props;
+      onChange && onChange(this.state.value);
     }
   }
 
   componentDidUpdate(prevProps: INumberInputProps) {
     if (
-      this.props.value !== prevProps.value &&
+      this.props !== prevProps &&
+      'value' in this.props &&
       this.state.value !== this.props.value
     ) {
-      this.props.onChange(this.state.value);
+      const { onChange } = this.props;
+      onChange && onChange(this.state.value);
     }
+  }
+
+  renderChild(children: React.ReactNode) {
+    const { disabled, readOnly, showCounter, showStepper } = this.props;
+    const { value } = this.state;
+    const { canDec, canInc } = this.calculateLimit(value);
+    // 箭头状态
+    const addState = disabled || readOnly || !canInc;
+    const reduceState = disabled || readOnly || !canDec;
+    // 上arrow样式
+    const upArrowClass = cx({
+      'zent-number-input-arrow': true,
+      'zent-number-input-arrowup': true,
+      'zent-number-input-arrow-disable': addState,
+    });
+
+    // // 下arrow样式
+    const downArrowClass = cx({
+      'zent-number-input-arrow': true,
+      'zent-number-input-arrowdown': true,
+      'zent-number-input-arrow-disable': reduceState,
+    });
+
+    // // 减号样式
+    const reduceCountClass = cx({
+      'zent-number-input-count': true,
+      'zent-number-input-countreduce': true,
+      'zent-number-input-count-disable': reduceState,
+    });
+
+    // // 加号样式
+    const addCountClass = cx({
+      'zent-number-input-count': true,
+      'zent-number-input-countadd': true,
+      'zent-number-input-count-disable': addState,
+    });
+
+    return (
+      <>
+        {showCounter && (
+          <div className={reduceCountClass} onClick={this.dec}>
+            –
+          </div>
+        )}
+        {children}
+        {showCounter && (
+          <div className={addCountClass} onClick={this.inc}>
+            +
+          </div>
+        )}
+        {showStepper && (
+          <div className={'zent-number-input-arrows'}>
+            <div className={upArrowClass} onClick={this.inc}>
+              <Icon type="right" />
+            </div>
+            <div className={downArrowClass} onClick={this.dec}>
+              <Icon type="right" />
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
 
   render() {
     verifyProps(this.props);
     const {
-      prefix,
       className,
       disabled,
       readOnly,
@@ -246,7 +331,6 @@ export class NumberInput extends PureComponent<
       type,
 
       onChange,
-      // width,
 
       showStepper,
       showCounter,
@@ -254,96 +338,23 @@ export class NumberInput extends PureComponent<
       max,
       decimal,
 
-      addonBefore: addonBeforeProp,
-      addonAfter: addonAfterProp,
-
       ...inputProps
     } = this.props;
     const { value } = this.state;
-    const { canDec, canInc } = this.calculateLimit(value);
-    // 箭头状态
-    const addState = disabled || readOnly || !canInc;
-    const reduceState = disabled || readOnly || !canDec;
-
-    // 上arrow样式
-    const upArrowClass = cx({
-      [`${prefix}-number-input-arrow`]: true,
-      [`${prefix}-number-input-arrowup`]: true,
-      [`${prefix}-number-input-arrow-disable`]: addState,
-    });
-
-    // // 下arrow样式
-    const downArrowClass = cx({
-      [`${prefix}-number-input-arrow`]: true,
-      [`${prefix}-number-input-arrowdown`]: true,
-      [`${prefix}-number-input-arrow-disable`]: reduceState,
-    });
-
-    // // 减号样式
-    const reduceCountClass = cx({
-      [`${prefix}-number-input-count`]: true,
-      [`${prefix}-number-input-countreduce`]: true,
-      [`${prefix}-number-input-count-disable`]: reduceState,
-    });
-
-    // // 加号样式
-    const addCountClass = cx({
-      [`${prefix}-number-input-count`]: true,
-      [`${prefix}-number-input-countadd`]: true,
-      [`${prefix}-number-input-count-disable`]: addState,
-    });
-
-    let addonBefore: React.ReactNode = null;
-    if (addonBeforeProp || showCounter) {
-      addonBefore = (
-        <>
-          {showCounter && (
-            <div className={reduceCountClass} onClick={this.dec}>
-              –
-            </div>
-          )}
-          {addonBeforeProp}
-        </>
-      );
-    }
-
-    let addonAfter: React.ReactNode = null;
-    if (addonAfterProp || showCounter || showStepper) {
-      addonAfter = (
-        <>
-          {addonAfterProp}
-          {showCounter && (
-            <div className={addCountClass} onClick={this.inc}>
-              +
-            </div>
-          )}
-          {showStepper && (
-            <div className={`${prefix}-number-input-arrows`}>
-              <div className={upArrowClass} onClick={this.inc}>
-                <Icon type="right" />
-              </div>
-              <div className={downArrowClass} onClick={this.dec}>
-                <Icon type="right" />
-              </div>
-            </div>
-          )}
-        </>
-      );
-    }
 
     return (
-      <Input
-        {...inputProps}
-        prefix={prefix}
-        readOnly={readOnly}
-        disabled={disabled}
-        className={cx(`${prefix}-number-input`, className)}
-        value={value}
-        onChange={this.onChange}
-        onBlur={this.onBlur}
-        addonBefore={addonBefore}
-        addonAfter={addonAfter}
-      />
+      <InputContext.Provider value={this.inputContext}>
+        <Input
+          autoComplete="off"
+          {...inputProps}
+          readOnly={readOnly}
+          disabled={disabled}
+          className={cx('zent-number-input', className)}
+          value={value}
+          onChange={this.onChange}
+          onBlur={this.onBlur}
+        />
+      </InputContext.Provider>
     );
   }
 }

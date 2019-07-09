@@ -1,8 +1,7 @@
 @import './theme/default';
+@import './theme/font';
 
-$blue: $theme-primary-2;
-$darkblue: $theme-primary-1;
-$orange: $theme-error-3;
+$blue: $theme-primary-4;
 
 .zent-table-container {
   margin-bottom: 20px;
@@ -47,10 +46,10 @@ $orange: $theme-error-3;
     .tr {
       border-top: 0;
       border-bottom: 1px solid $theme-stroke-6;
-      background: $theme-stroke-7;
+      background: $theme-stroke-8;
 
       .cell {
-        font-size: 14px;
+        font-size: $font-size-normal;
         font-weight: 500;
       }
     }
@@ -95,11 +94,11 @@ $orange: $theme-error-3;
       }
 
       .caret-up.sort-active {
-        border-bottom-color: $theme-primary-2;
+        border-bottom-color: $theme-primary-4;
       }
 
       .caret-down.sort-active {
-        border-top-color: $theme-primary-2;
+        border-top-color: $theme-primary-4;
       }
 
       &:hover {
@@ -120,7 +119,7 @@ $orange: $theme-error-3;
   .tbody {
     .tr {
       &:hover {
-        background: $theme-stroke-8;
+        background: $theme-primary-8;
 
         .empty-data {
           background: transparent;
@@ -163,22 +162,20 @@ $orange: $theme-error-3;
 
     .cell {
       min-height: 56px;
-      font-size: 14px;
+      font-size: $font-size-normal;
     }
   }
 
   .tfoot {
-    margin-top: 10px;
+    margin-top: 16px;
     box-sizing: border-box;
 
     &__batchcomponents {
       float: left;
-      padding: 5px;
       padding-left: 10px;
 
       &--has-children {
         margin-bottom: 10px;
-        border: 1px solid $theme-stroke-6;
         background: $theme-stroke-9;
       }
 
@@ -209,7 +206,7 @@ $orange: $theme-error-3;
     min-height: 56px;
     align-items: center;
     text-align: left;
-    font-size: 12px;
+    font-size: $font-size-normal;
 
     &__child-container {
       overflow: hidden;
@@ -241,7 +238,7 @@ $orange: $theme-error-3;
 
     &.cell--money,
     &.cell--end {
-      justify-content: end;
+      justify-content: flex-end;
 
       .cell__child-container {
         text-align: right;
@@ -249,7 +246,7 @@ $orange: $theme-error-3;
     }
 
     &.cell--start {
-      justify-content: start;
+      justify-content: flex-start;
 
       .cell__child-container {
         text-align: left;
@@ -290,31 +287,6 @@ $orange: $theme-error-3;
       transform: translateY(-50%);
       margin-top: 0;
     }
-  }
-
-  .card__thumb {
-    float: left;
-    margin-right: 5px;
-    height: 50px;
-  }
-
-  .card__title {
-    display: block;
-    height: 32px;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 12px;
-    color: $blue;
-
-    &:hover {
-      text-decoration: none;
-    }
-  }
-
-  .card__info {
-    font-size: 12px;
-    color: $orange;
   }
 
   .clearfix:after {

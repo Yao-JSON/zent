@@ -1,7 +1,14 @@
 export function getNodeFromSelector(selector: string | Element): Element {
-  const node =
-    typeof selector === 'string' ? document.querySelector(selector) : selector;
-  return node || document.body;
+  if (selector instanceof Element) {
+    return selector;
+  }
+  if (typeof selector === 'string') {
+    const node = document.querySelector(selector);
+    if (node) {
+      return node;
+    }
+  }
+  throw new Error('Invalid selector');
 }
 
 export function createContainerNode(parent: Node, tag = 'div') {
@@ -9,26 +16,15 @@ export function createContainerNode(parent: Node, tag = 'div') {
   return parent.appendChild(div);
 }
 
-export function removeNodeFromDOMTree(node: Node) {
-  const { parentNode } = node;
-  if (parentNode) {
-    parentNode.removeChild(node);
-  }
-}
-
-export function isDescendant(parent: Node, child: Node) {
-  let node = child.parentNode;
-
-  while (node !== null) {
-    if (node === parent) return true;
-    node = node.parentNode;
-  }
-
-  return false;
-}
-
 export function removeAllChildren(node: Node) {
   while (node && node.firstChild) {
     node.removeChild(node.firstChild);
   }
+}
+
+export function hasScrollbarY(element: Element) {
+  if (element === document.body) {
+    return element.scrollHeight > window.innerHeight;
+  }
+  return element.scrollHeight > element.clientHeight;
 }

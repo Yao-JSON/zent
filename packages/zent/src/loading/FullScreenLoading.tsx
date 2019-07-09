@@ -1,26 +1,23 @@
 import * as React from 'react';
 import cx from 'classnames';
-import isUndefined from 'lodash-es/isUndefined';
+import isNumber from 'lodash-es/isNumber';
 
-import PurePortal from '../portal/PurePortal';
-import withNonScrollable from '../portal/withNonScrollable';
 import useDelayed from './hooks/useDelayed';
-import { IFullScreenLoadingProps, FullScreenDefaultProps } from './props';
+import { IFullScreenLoadingProps } from './props';
 import LoadingMask from './components/LoadingMask';
+import { Portal } from '../portal';
 
-const NO_STYLE = {};
-
-const NonScrollablePurePortal = withNonScrollable(PurePortal);
+const NO_STYLE: React.CSSProperties = {};
 
 export function FullScreenLoading(props: IFullScreenLoadingProps) {
   const {
-    loading,
-    delay,
+    loading = false,
+    delay = 0,
     className,
-    icon,
+    icon = 'youzan',
     iconSize,
     iconText,
-    textPosition,
+    textPosition = 'bottom',
     zIndex,
   } = props;
   const delayed = useDelayed({ loading, delay });
@@ -29,25 +26,22 @@ export function FullScreenLoading(props: IFullScreenLoadingProps) {
     return null;
   }
 
-  const style = isUndefined(zIndex) ? NO_STYLE : { zIndex };
+  const style = isNumber(zIndex) ? { zIndex } : NO_STYLE;
 
   return (
-    <NonScrollablePurePortal selector={document.body} append>
-      <div
-        className={cx('zent-loading', 'zent-loading--fullscreen', className)}
-        style={style}
-      >
-        <LoadingMask
-          icon={icon}
-          size={iconSize}
-          text={iconText}
-          textPosition={textPosition}
-        />
-      </div>
-    </NonScrollablePurePortal>
+    <Portal
+      className={cx('zent-loading', 'zent-loading--fullscreen', className)}
+      style={style}
+      blockPageScroll
+    >
+      <LoadingMask
+        icon={icon}
+        size={iconSize}
+        text={iconText}
+        textPosition={textPosition}
+      />
+    </Portal>
   );
 }
-
-FullScreenLoading.defaultProps = FullScreenDefaultProps;
 
 export default FullScreenLoading;

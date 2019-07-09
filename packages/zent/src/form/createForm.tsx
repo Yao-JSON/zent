@@ -39,7 +39,7 @@ const checkSubmit = submit => {
 
 export interface IFormCreateFormConfig {
   formValidations?: { [key: string]: any };
-  onChange?: () => void;
+  onChange?: (values?: {}, isChanged?: boolean) => void;
   onSubmitSuccess?: () => void;
   onSubmitFail?: () => void;
   scrollToError?: boolean;
@@ -54,9 +54,11 @@ export interface IFormCreateFormWrapperProps {
   onChange?: (values?: object, isChanged?: boolean) => void;
   validationErrors?: { [key: string]: string };
   scrollToError?: boolean;
+
+  [key: string]: any;
 }
 
-export interface IFormCreateFormWrapperProps {
+export interface IFormCreateFormWrapperState {
   isFormValid: boolean;
   isSubmitting: boolean;
   submitFail: boolean;
@@ -78,7 +80,7 @@ const createForm = (
   return WrappedForm => {
     return class Form extends Component<
       IFormCreateFormWrapperProps,
-      IFormCreateFormWrapperProps
+      IFormCreateFormWrapperState
     > {
       fields: any[];
       fieldArrays: any[];
@@ -732,8 +734,10 @@ const createForm = (
 
         this.fields.forEach((field, index) => {
           if (!forceValidate && !field.props.validateOnBlur) {
+            onValidationComplete(index);
             return;
           }
+
           if (
             relatedFields === undefined ||
             (relatedFields && relatedFields.indexOf(field.getName()) >= 0)

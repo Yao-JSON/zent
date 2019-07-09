@@ -1,4 +1,5 @@
 @import './theme/default';
+@import './theme/font';
 
 .zent-timeline {
   padding: 10px 0;
@@ -10,7 +11,7 @@
     height: 10px;
     background-color: $theme-stroke-7;
     border-radius: 50%;
-    border: 2px solid $theme-primary-2;
+    border: 2px solid $theme-primary-4;
     box-sizing: border-box;
   }
 
@@ -27,7 +28,7 @@
       display: inline-block;
       width: 18px;
       height: 2px;
-      background-color: $theme-primary-2;
+      background-color: $theme-primary-4;
       vertical-align: middle;
 
       .zent-timeline-dot {
@@ -42,7 +43,7 @@
 
     &-label {
       vertical-align: middle;
-      font-size: 12px;
+      font-size: $font-size-small;
       margin-left: 5px;
     }
   }
@@ -170,5 +171,5 @@
   color: white;
   border-radius: 5px;
   z-index: 5000;
-  font-size: 12px;
+  font-size: $font-size-small;
 }

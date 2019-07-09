@@ -6,9 +6,15 @@ import Portal from '../portal';
 import WindowResizeHandler from '../utils/component/WindowResizeHandler';
 import WindowEventHandler from '../utils/component/WindowEventHandler';
 import findPositionedParent from '../utils/dom/findPositionedParent';
+import { getViewportSize } from '../utils/dom/getViewportSize';
 import isEqualPlacement from './placement/isEqual';
 import invisiblePlacement from './placement/invisible';
 import { PositionFunction, IPopoverPosition } from './position-function';
+
+export function isPositionVisible(rect) {
+  const viewSize = getViewportSize();
+  return !(rect.bottom < 0 || rect.top - viewSize.height > 0);
+}
 
 function translateToContainerCoordinates(containerBB, bb) {
   const { left, top } = containerBB;
@@ -49,7 +55,7 @@ export interface IPopoverContentState {
  */
 export default class PopoverContent extends Component<
   IPopoverContentProps,
-  any
+  IPopoverContentState
 > {
   positionReady: boolean;
   positionedParent: Element | null;
@@ -57,7 +63,7 @@ export default class PopoverContent extends Component<
   constructor(props) {
     super(props);
     this.state = {
-      position: null,
+      position: (invisiblePlacement as any)(props.prefix),
     };
 
     // 标记 content 的位置是否 ready
@@ -135,7 +141,6 @@ export default class PopoverContent extends Component<
         containerBoundingBoxViewport: parentBoundingBox,
       }
     );
-
     if (!isEqualPlacement(this.state.position, position)) {
       this.setState(
         {
@@ -143,7 +148,7 @@ export default class PopoverContent extends Component<
         },
         () => {
           this.props.onPositionUpdated();
-          if (!this.positionReady) {
+          if (isPositionVisible(boundingBox) && !this.positionReady) {
             this.positionReady = true;
             this.props.onPositionReady();
           }
@@ -162,7 +167,6 @@ export default class PopoverContent extends Component<
 
   componentDidMount() {
     const { visible } = this.props;
-
     if (visible) {
       this.adjustPosition();
     }
@@ -188,20 +192,14 @@ export default class PopoverContent extends Component<
     } = this.props;
     const { position } = this.state;
 
-    if (!position) {
-      return null;
-    }
-
     const cls = cx(className, `${prefix}-popover`, id, position.toString());
 
     return (
       <Portal
-        prefix={prefix}
         visible={visible}
         selector={containerSelector}
         className={cls}
         style={position.getCSSStyle()}
-        onMount={this.adjustPosition}
       >
         <div className={`${prefix}-popover-content`}>
           {children}

@@ -1,4 +1,5 @@
 @import './theme/default';
+@import './theme/font';
 
 .zent-slider {
   display: flex;
@@ -20,7 +21,7 @@
 
     &:hover {
       .zent-slider-track {
-        background: $theme-primary-2;
+        background: $theme-primary-4;
 
         &-disabled {
           background: $theme-stroke-4;
@@ -43,12 +44,12 @@
 
   &-track {
     height: 4px;
-    background: $theme-primary-4;
+    background: $theme-primary-6;
     position: absolute;
     border-radius: 8px;
 
     &:hover {
-      background: $theme-primary-2;
+      background: $theme-primary-4;
     }
 
     &-disabled {
@@ -68,13 +69,13 @@
     margin-top: -5px;
     margin-left: -7px;
     border-radius: 50%;
-    border: 2px solid $theme-primary-4;
+    border: 2px solid $theme-primary-6;
     background-color: $theme-stroke-9;
     transition: border-color 0.3s ease,
       transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 
     &:hover {
-      border-color: $theme-primary-2;
+      border-color: $theme-primary-4;
       transform: scale(1.2);
       transform-origin: center center;
     }
@@ -107,16 +108,16 @@
 
     .toolTips-content {
       position: absolute;
-      top: -33px;
+      top: -48px;
       transform: translateX(-50%);
 
       .toolTips-inner {
-        padding: 4px 5px;
+        @include font-normal;
+        padding: 8px 10px;
         background-color: $theme-stroke-1;
         border-radius: 2px;
-        font-size: 12px;
         color: $theme-stroke-9;
-        line-height: 11px;
+        line-height: 14px;
         position: relative;
         z-index: 2;
         white-space: nowrap;
@@ -128,9 +129,9 @@
         left: 50%;
         position: absolute;
         z-index: 1;
-        top: 13px;
-        width: 6px;
-        height: 6px;
+        top: 20px;
+        width: 10px;
+        height: 10px;
         overflow: hidden;
       }
     }
@@ -161,9 +162,9 @@
   }
 
   &-marks {
+    @include font-normal;
     position: absolute;
     width: 100%;
-    font-size: 12px;
     margin-top: 4px;
     color: $theme-stroke-1;
 
@@ -190,7 +191,7 @@
       border-radius: 50%;
 
       &-active {
-        border: 1px solid $theme-primary-4;
+        border: 1px solid $theme-primary-6;
       }
     }
   }

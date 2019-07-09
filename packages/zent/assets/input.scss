@@ -1,5 +1,6 @@
 @import './theme/default';
 @import './theme/font';
+
 $defaultBorderColor: $theme-stroke-5;
 $errorBorderColor: $theme-error-4;
 $borderRadius: 2px;
@@ -18,6 +19,7 @@ $large-size: 40px;
   border-radius: $borderRadius;
   transition: $border-transition;
   overflow: hidden;
+  align-items: center;
 
   &.zent-input--size-small {
     height: $small-size;
@@ -47,7 +49,7 @@ $large-size: 40px;
   }
 
   &.zent-input--has-focus:not(.zent-input-wrapper__not-editable) {
-    border-color: $theme-primary-2;
+    border-color: $theme-primary-4;
     box-shadow: $focus-box-shadow;
   }
 
@@ -60,23 +62,15 @@ $large-size: 40px;
     }
   }
 
-  .zenticon {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    transform: translate(0, -50%);
+  .zent-input-icon {
+    display: block;
+    margin-left: 10px;
+  }
+
+  .zent-input-close {
+    display: block;
+    margin-right: 10px;
     color: $theme-stroke-5;
-
-    &-close-circle {
-      font-size: 12px;
-      right: 10px;
-      cursor: pointer;
-      padding: 4px 0;
-
-      &:hover {
-        color: $theme-stroke-4;
-      }
-    }
   }
 }
 
@@ -105,7 +99,7 @@ $large-size: 40px;
   min-width: 80px;
   height: 100%;
   box-sizing: border-box;
-  padding: 0 16px;
+  padding: 0 10px;
   margin: 0;
   color: $theme-stroke-1;
   font-size: $font-size-normal;
